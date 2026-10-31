@@ -1,0 +1,20 @@
+# Official binary backups (never commit to Git)
+backups/
+*.bak
+*.orig
+*.new
+*.running_old*
+*.restore_tmp
+
+# Runtime logs and local machine state
+logs/
+*.log
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS metadata
+.DS_Store
+Thumbs.db

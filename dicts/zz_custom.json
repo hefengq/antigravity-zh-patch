@@ -1,0 +1,14 @@
+{
+    "Sound": "声音",
+    "Volume": "音量",
+    "Set the volume of agent sounds.": "设置智能体提示音的音量。",
+    "Show system notifications when your action is needed or the agent finishes.": "在需要您操作或智能体完成任务时显示系统通知。",
+    "Play a sound when your action is needed or the agent finishes.": "在需要您操作或智能体完成任务时播放提示音。",
+    "For paid Pro plans, Argon quota is separate. Higher Argon quota (included as part of the larger Gemini quota bucket) is available on Ultra plans.": "付费 Pro 方案中，Argon 配额单独计算。Ultra 方案提供更高的 Argon 配额（包含在更大的 Gemini 配额池中）。",
+    "Built-in Browser": "内置浏览器",
+    "Configure link opening and built-in browser preferences.": "配置链接打开方式和内置浏览器偏好。",
+    "Open Links In": "链接打开方式",
+    "Choose where links open by default when clicked.": "选择点击链接时默认在哪里打开。",
+    "External Browser": "外部浏览器",
+    "Browser Subagent": "浏览器子代理"
+}
