@@ -7,7 +7,10 @@
         'on', 'in', 'to', 'at', 'by', 'for', 'with', 'as',
         'system', 'review', 'active', 'browser', 'global',
         'including', 'and', 'or', 'file', 'files', 'help',
-        'app', 'plan', 'search'
+        'app', 'plan', 'search',
+        'type', 'from', 'use', 'runs', 'reads', 'show', 'hide',
+        'fill', 'auto', 'branch', 'commit', 'push', 'voice',
+        'chat', 'cloud', 'after', 'before', 'design', 'live', 'web'
     ]);
     for (const [k, v] of map.entries()) {
         const lowerK = k.toLowerCase();
@@ -106,6 +109,129 @@
         );
     }
 
+    function translateDynamicPattern(t) {
+        if (!t) return null;
+        if (/^Show\s+(\d+)\s+earlier\s+steps?$/i.test(t)) {
+            return t.replace(/^Show\s+(\d+)\s+earlier\s+steps?$/i, (m, num) => '显示更早的 ' + num + ' 个步骤');
+        }
+        if (/^Generation\s+Steps\s*\((\d+)\)$/i.test(t)) {
+            return t.replace(/^Generation\s+Steps\s*\((\d+)\)$/i, (m, num) => '生成步骤 (' + num + ')');
+        }
+        if (/^Show\s+more\s*\((\d+)\)$/i.test(t)) {
+            return t.replace(/^Show\s+more\s*\((\d+)\)$/i, (m, num) => '显示更多 (' + num + ')');
+        }
+        if (/^Show\s+submitted\s*\((\d+)\)$/i.test(t)) {
+            return t.replace(/^Show\s+submitted\s*\((\d+)\)$/i, (m, num) => '显示已提交 (' + num + ')');
+        }
+        if (/^Show\s+(\d+)\s+more\s+subagents?$/i.test(t)) {
+            return t.replace(/^Show\s+(\d+)\s+more\s+subagents?$/i, (m, num) => '显示另外 ' + num + ' 个子智能体');
+        }
+        if (/^(\d+)\s+comments?$/i.test(t)) {
+            return t.replace(/^(\d+)\s+comments?$/i, (m, num) => num + ' 条批注');
+        }
+        if (/^(\d+)\s+active\s+conversations?$/i.test(t)) {
+            return t.replace(/^(\d+)\s+active\s+conversations?$/i, (m, num) => num + ' 个活跃会话');
+        }
+        if (/^(\d+)\s+archived\s+conversations?$/i.test(t)) {
+            return t.replace(/^(\d+)\s+archived\s+conversations?$/i, (m, num) => num + ' 个已归档会话');
+        }
+        if (/^Sort\s+and\s+filter\s+conversations\s*\((\d+)\s+active\)$/i.test(t)) {
+            return t.replace(/^Sort\s+and\s+filter\s+conversations\s*\((\d+)\s+active\)$/i, (m, num) => '排序和筛选会话（' + num + ' 个活跃）');
+        }
+        if (/^(\d+)\s+tools?\s+enabled$/i.test(t)) {
+            return t.replace(/^(\d+)\s+tools?\s+enabled$/i, (m, num) => num + ' 个工具已启用');
+        }
+        if (/^(\d+)\s+tools?\s+disabled$/i.test(t)) {
+            return t.replace(/^(\d+)\s+tools?\s+disabled$/i, (m, num) => num + ' 个工具已禁用');
+        }
+        if (/^(\d+)\s+tools?\s+excluded$/i.test(t)) {
+            return t.replace(/^(\d+)\s+tools?\s+excluded$/i, (m, num) => num + ' 个工具已排除');
+        }
+        if (/^Hide\s+tools$/i.test(t)) {
+            return '收起工具';
+        }
+        if (/^(\d+)\s+tools$/i.test(t)) {
+            return t.replace(/^(\d+)\s+tools$/i, (m, num) => num + ' 个工具');
+        }
+        if (/^(\d+)\s+Files?\s+With\s+Changes$/i.test(t)) {
+            return t.replace(/^(\d+)\s+Files?\s+With\s+Changes$/i, (m, num) => num + ' 个文件有更改');
+        }
+        if (/^(\d+)\s+files?\s+changed$/i.test(t)) {
+            return t.replace(/^(\d+)\s+files?\s+changed$/i, (m, num) => num + ' 个文件已更改');
+        }
+        if (/^(\d+)\s+questions?$/i.test(t)) {
+            return t.replace(/^(\d+)\s+questions?$/i, (m, num) => num + ' 个问题');
+        }
+        if (/^(\d+)\s+turns?$/i.test(t)) {
+            return t.replace(/^(\d+)\s+turns?$/i, (m, num) => num + ' 轮对话');
+        }
+        if (/^Turn\s+(\d+)\s+of\s+(\d+)$/i.test(t)) {
+            return t.replace(/^Turn\s+(\d+)\s+of\s+(\d+)$/i, (m, a, b) => '第 ' + a + ' / ' + b + ' 轮');
+        }
+        if (/^Step\s+(\d+)\s+of\s+(\d+)$/i.test(t)) {
+            return t.replace(/^Step\s+(\d+)\s+of\s+(\d+)$/i, (m, a, b) => '第 ' + a + ' / ' + b + ' 步');
+        }
+        if (/^Question\s+(\d+)\s+of\s+(\d+)$/i.test(t)) {
+            return t.replace(/^Question\s+(\d+)\s+of\s+(\d+)$/i, (m, a, b) => '问题 ' + a + ' / ' + b);
+        }
+        if (/^Downloads,\s*(\d+)%\s*complete$/i.test(t)) {
+            return t.replace(/^Downloads,\s*(\d+)%\s*complete$/i, (m, num) => '下载中，已完成 ' + num + '%');
+        }
+        if (/^Waiting\s+for\s+command\s+completion\s*\(up\s+to\s+(\d+)\s*s(?:ec(?:onds?)?)?\)$/i.test(t)) {
+            return t.replace(/^Waiting\s+for\s+command\s+completion\s*\(up\s+to\s+(\d+)\s*s(?:ec(?:onds?)?)?\)$/i, (m, num) => '正在等待命令完成（最多 ' + num + ' 秒）');
+        }
+        if (/^Show\s+(\d+)\s+more(\s+(results?|items?|commands?|options?))?(\.\.\.|…)?$/i.test(t)) {
+            return t.replace(
+                /^Show\s+(\d+)\s+more(\s+(results?|items?|commands?|options?))?(\.\.\.|…)?$/i,
+                (m, num, p2, type) => {
+                    if (type) {
+                        if (/result/i.test(type)) return '显示另外 ' + num + ' 个结果...';
+                        if (/command/i.test(type)) return '显示另外 ' + num + ' 个命令...';
+                        if (/item/i.test(type)) return '显示另外 ' + num + ' 个项目...';
+                        if (/option/i.test(type)) return '显示另外 ' + num + ' 个选项...';
+                    }
+                    return '显示另外 ' + num + ' 个...';
+                }
+            );
+        }
+        if (/^Show\s+(\d+)\s+breakdown(s)?$/i.test(t)) {
+            return t.replace(/^Show\s+(\d+)\s+breakdown(s)?$/i, (m, num) => '显示 ' + num + ' 项细目');
+        }
+        if (/^Hide\s+breakdown(s)?$/i.test(t)) {
+            return '收起细目';
+        }
+        if (/^Show\s+breakdown(s)?$/i.test(t)) {
+            return '显示细目';
+        }
+        if (/^See all\s*\((\d+)\)$/i.test(t)) {
+            return t.replace(/^See all\s*\((\d+)\)$/i, (m, num) => '显示全部 (' + num + ')');
+        }
+        if (/^(?:\+\s*)?See\s+(\d+)\s+more(?:\s+(.+))?$/i.test(t)) {
+            return t.replace(/^(?:\+\s*)?See\s+(\d+)\s+more(?:\s+(.+))?$/i, (m, num) => (/^\+/.test(t) ? '+ ' : '') + '展开另外 ' + num + ' 项');
+        }
+        if (/^See\s+more\s+in\s+(.+)$/i.test(t)) {
+            return t.replace(/^See\s+more\s+in\s+(.+)$/i, (m, name) => '在 ' + name + ' 中展开更多');
+        }
+        if (/^(?:(Permanently delete)\s+)?(.+?)\s+including\s+(\d+)\s+active conversations?([.。])?$/i.test(t)) {
+            return t.replace(
+                /^(?:(Permanently delete)\s+)?(.+?)\s+including\s+(\d+)\s+active conversations?([.。])?$/i,
+                (match, del, name, count, dot) => (del ? '永久删除 ' : '') + name + '（包含 ' + count + ' 个活跃会话）' + (dot ? '。' : '')
+            );
+        }
+        if (/^(Thought|Thinking|Worked|Running) for\s+(.+)$/i.test(t)) {
+            return t.replace(/^(Thought|Thinking|Worked|Running) for\s+(.+)$/i, (match, verb, dur) => {
+                const vZh = /^Thought/i.test(verb) ? '已思考 ' : /^Thinking/i.test(verb) ? '正在思考 ' : /^Running/i.test(verb) ? '已运行 ' : '已工作 ';
+                const dZh = dur
+                    .trim()
+                    .replace(/(\d+)\s*h(?:ours?|r)?/gi, '$1 小时')
+                    .replace(/(\d+)\s*m(?:inutes?|in)?/gi, '$1 分钟')
+                    .replace(/(\d+)\s*s(?:econds?|ec)?/gi, '$1 秒');
+                return vZh + dZh;
+            });
+        }
+        return null;
+    }
+
     function translateNode(node) {
         try {
             if (!node) return;
@@ -123,34 +249,9 @@
                         if (shortcutTrans) node.setAttribute(attr, shortcutTrans);
                         else if (map.has(t)) node.setAttribute(attr, map.get(t));
                         else if (lowerMap.has(t.toLowerCase())) node.setAttribute(attr, lowerMap.get(t.toLowerCase()));
-                        else if (/^Show\s+(\d+)\s+more/i.test(t)) {
-                            const trans = t.replace(
-                                /^Show\s+(\d+)\s+more(\s+(results?|items?|commands?|options?))?(\.\.\.|…)?$/i,
-                                (m, num, p2, type) => {
-                                    if (type) {
-                                        if (/result/i.test(type)) return '显示另外 ' + num + ' 个结果...';
-                                        if (/command/i.test(type)) return '显示另外 ' + num + ' 个命令...';
-                                        if (/item/i.test(type)) return '显示另外 ' + num + ' 个项目...';
-                                        if (/option/i.test(type)) return '显示另外 ' + num + ' 个选项...';
-                                    }
-                                    return '显示另外 ' + num + ' 个...';
-                                }
-                            );
-                            node.setAttribute(attr, trans);
-                        } else if (/^Show\s+(\d+)\s+breakdown(s)?$/i.test(t)) {
-                            node.setAttribute(attr, t.replace(/^Show\s+(\d+)\s+breakdown(s)?$/i, (m, num) => '显示 ' + num + ' 项细目'));
-                        } else if (/^Hide\s+breakdown(s)?$/i.test(t)) {
-                            node.setAttribute(attr, '收起细目');
-                        } else if (/^See\s+(\d+)\s+more(?:\s+(.+))?$/i.test(t)) {
-                            node.setAttribute(attr, t.replace(/^See\s+(\d+)\s+more(?:\s+(.+))?$/i, (m, num) => '展开另外 ' + num + ' 项'));
-                        } else if (/^See\s+more\s+in\s+(.+)$/i.test(t)) {
-                            node.setAttribute(attr, t.replace(/^See\s+more\s+in\s+(.+)$/i, (m, name) => '在 ' + name + ' 中展开更多'));
-                        } else if (/^(?:(Permanently delete)\s+)?(.+?)\s+including\s+(\d+)\s+active conversations?([.。])?$/i.test(t)) {
-                            const trans = t.replace(
-                                /^(?:(Permanently delete)\s+)?(.+?)\s+including\s+(\d+)\s+active conversations?([.。])?$/i,
-                                (match, del, name, count, dot) => (del ? '永久删除 ' : '') + name + '（包含 ' + count + ' 个活跃会话）' + (dot ? '。' : '')
-                            );
-                            node.setAttribute(attr, trans);
+                        else {
+                            const dynTrans = translateDynamicPattern(t);
+                            if (dynTrans) node.setAttribute(attr, dynTrans);
                         }
                     }
                 }
@@ -224,12 +325,21 @@
                 if (translatedValues.get(node) === originalVal) return;
 
                 let newVal = originalVal;
+                let dynTrans = null;
                 const valNorm = norm(originalVal);
                 const valLower = valNorm.toLowerCase();
 
                 const shortcutTrans = translateWithShortcut(valNorm);
                 if (shortcutTrans) {
                     newVal = shortcutTrans;
+                } else if (
+                    (valNorm === 'Type' || valNorm === 'and select') &&
+                    node.parentElement &&
+                    ((typeof node.parentElement.closest === 'function' && node.parentElement.closest('[data-testid="plan-command-fyi-alert"]')) ||
+                        (node.parentElement.textContent && node.parentElement.textContent.includes('generate a plan')))
+                ) {
+                    if (valNorm === 'Type') newVal = '输入';
+                    else if (valNorm === 'and select') newVal = '并选择';
                 } else if (map.has(valNorm)) {
                     newVal = map.get(valNorm);
                 } else if (lowerMap.has(valLower)) {
@@ -240,14 +350,6 @@
                     newVal = '排队发送消息 ' + valNorm.replace(/^Queue message\s+/i, '');
                 } else if (/^to have the agent generate a plan\.?$/i.test(valNorm)) {
                     newVal = '让智能体生成计划。';
-                } else if (
-                    (valNorm === 'Type' || valNorm === 'and select') &&
-                    node.parentElement &&
-                    ((typeof node.parentElement.closest === 'function' && node.parentElement.closest('[data-testid="plan-command-fyi-alert"]')) ||
-                        (node.parentElement.textContent && node.parentElement.textContent.includes('generate a plan')))
-                ) {
-                    if (valNorm === 'Type') newVal = '输入';
-                    else if (valNorm === 'and select') newVal = '并选择';
                 } else if (
                     valNorm === 'and' &&
                     node.parentElement &&
@@ -311,34 +413,6 @@
                     newVal = valNorm.replace(/^Yes, and always allow '(.+)' in this project$/i, (match, cmd) => "是，且在此项目中始终允许运行 '" + cmd + "'");
                 } else if (/^Yes, and always allow '(.+)'$/i.test(valNorm)) {
                     newVal = valNorm.replace(/^Yes, and always allow '(.+)'$/i, (match, cmd) => "是，且始终允许运行 '" + cmd + "'");
-                } else if (/^(\d+) tools? enabled$/i.test(valNorm)) {
-                    newVal = valNorm.replace(/^(\d+) tools? enabled$/i, (match, num) => num + ' 个工具已启用');
-                } else if (/^Show\s+(\d+)\s+more(\s+(results?|items?|commands?|options?))?(\.\.\.|…)?$/i.test(valNorm)) {
-                    newVal = valNorm.replace(/^Show\s+(\d+)\s+more(\s+(results?|items?|commands?|options?))?(\.\.\.|…)?$/i, (match, num, p2, type) => {
-                        if (type) {
-                            if (/result/i.test(type)) return '显示另外 ' + num + ' 个结果...';
-                            if (/command/i.test(type)) return '显示另外 ' + num + ' 个命令...';
-                            if (/item/i.test(type)) return '显示另外 ' + num + ' 个项目...';
-                            if (/option/i.test(type)) return '显示另外 ' + num + ' 个选项...';
-                        }
-                        return '显示另外 ' + num + ' 个...';
-                    });
-                } else if (/^Show\s+(\d+)\s+breakdown(s)?$/i.test(valNorm)) {
-                    newVal = valNorm.replace(/^Show\s+(\d+)\s+breakdown(s)?$/i, (match, num) => '显示 ' + num + ' 项细目');
-                } else if (/^Hide\s+breakdown(s)?$/i.test(valNorm)) {
-                    newVal = '收起细目';
-                } else if (/^Show\s+breakdown(s)?$/i.test(valNorm)) {
-                    newVal = '显示细目';
-                } else if (/^Hide\s+tools$/i.test(valNorm)) {
-                    newVal = '收起工具';
-                } else if (/^(\d+)\s+tools$/i.test(valNorm)) {
-                    newVal = valNorm.replace(/^(\d+)\s+tools$/i, (match, num) => num + ' 个工具');
-                } else if (/^(\d+)\s+tools?\s+excluded$/i.test(valNorm)) {
-                    newVal = valNorm.replace(/^(\d+)\s+tools?\s+excluded$/i, (match, num) => num + ' 个工具已排除');
-                } else if (/^See all\s*\((\d+)\)$/i.test(valNorm)) {
-                    newVal = valNorm.replace(/^See all\s*\((\d+)\)$/i, (match, num) => '显示全部 (' + num + ')');
-                } else if (/^(?:\+\s*)?See\s+(\d+)\s+more(?:\s+(.+))?$/i.test(valNorm)) {
-                    newVal = valNorm.replace(/^(?:\+\s*)?See\s+(\d+)\s+more(?:\s+(.+))?$/i, (match, num) => (/^\+/.test(valNorm) ? '+ ' : '') + '展开另外 ' + num + ' 项');
                 } else if (/^Available AI Credits: (\d+)$/i.test(valNorm)) {
                     newVal = valNorm.replace(/^Available AI Credits: (\d+)$/i, (match, num) => '可用 AI 额度: ' + num);
                 } else if (/^Version\s+([\d\.]+)$/i.test(valNorm)) {
@@ -362,16 +436,8 @@
                         const kindMap = { Rules: '规则', Skills: '技能', 'Mcp Tools': 'MCP 工具' };
                         return (kindMap[kind] || kind) + '：' + num + ' Token';
                     });
-                } else if (/^(Thought|Thinking|Worked) for\s+(.+)$/i.test(valNorm)) {
-                    newVal = valNorm.replace(/^(Thought|Thinking|Worked) for\s+(.+)$/i, (match, verb, dur) => {
-                        const vZh = /^Thought/i.test(verb) ? '已思考 ' : /^Thinking/i.test(verb) ? '正在思考 ' : '已工作 ';
-                        const dZh = dur
-                            .trim()
-                            .replace(/(\d+)\s*h(?:ours?|r)?/gi, '$1 小时')
-                            .replace(/(\d+)\s*m(?:inutes?|in)?/gi, '$1 分钟')
-                            .replace(/(\d+)\s*s(?:econds?|ec)?/gi, '$1 秒');
-                        return vZh + dZh;
-                    });
+                } else if ((dynTrans = translateDynamicPattern(valNorm))) {
+                    newVal = dynTrans;
                 } else if (/^(?:(Exploring|Explored|Editing|Edited|Running|Ran)\s+)?(\d+)\s+(files?|folders?|searches?|commands?|tasks?|pages?|browsers?|images?|actions?|artifacts?)(?:,\s*(?:(Exploring|Explored|Editing|Edited|Running|Ran)\s+)?(\d+)\s+(files?|folders?|searches?|commands?|tasks?|pages?|browsers?|images?|actions?|artifacts?))*$/i.test(valNorm)) {
                     const verbMap = { exploring: '正在探索', explored: '已探索', editing: '正在编辑', edited: '已编辑', running: '正在运行', ran: '已运行' };
                     const nounMap = {
