@@ -13,7 +13,7 @@
 
 1. **🎯 新对话默认简体中文命名**
    - **根因解决**：Antigravity 新对话标题由后端 `language_server.exe` 独立请求生成，内部硬编码了 `Respond with ONLY a short conversation title (3-5 words, title-cased, no prefix)`，导致即使在 `GEMINI.md` 写了中文规则，侧边栏标题依然频繁变成英文。
-   - **原生修复**：通过 522 字节等长二进制替换，将内置标题生成 Prompt 改为强制输出 **4~12 字简体中文标题**，不破坏 PE 结构，从源头直接生成中文会话名。
+   - **原生修复**：通过 522 / 626 字节等长二进制替换，将内置标题生成 Prompt 改为强制输出 **4~12 字简体中文标题**，不破坏 PE 结构，从源头直接生成中文会话名。
 
 2. **⚡ 纯 Python 原生 ASAR 封包（0.5 秒极速完成，零 Node.js / `npx` 依赖）**
    - 无需安装 Node.js 或联网调用 `npx @electron/asar`，纯 Python 标准库直接解析并重打包 `app.asar`。
@@ -58,7 +58,7 @@
 
 ```text
 antigravity-zh-patch/
-├── dicts/                      # 分类简体中文词库 (JSON 格式，2,830+ 词条)
+├── dicts/                      # 分类简体中文词库 (JSON 格式，4,120+ 词条)
 │   ├── common.json             # 通用 UI 词条
 │   ├── menu_nav.json           # 导航栏与菜单词条
 │   ├── page_agents.json        # 智能体面板词条
@@ -66,6 +66,7 @@ antigravity-zh-patch/
 │   ├── page_settings.json      # 设置面板词条
 │   ├── page_v218_extra.json    # 扩展界面词条
 │   ├── page_v222_patch.json    # 新版增量词条
+│   ├── page_v226_patch.json    # v2.26+ 新版全量增量词条
 │   ├── page_workspaces.json    # 工作区词条
 │   └── zz_custom.json          # 用户自定义/新版增量覆盖词典 (最高优先级)
 ├── src/
