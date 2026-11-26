@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Antigravity 2.0 汉化与新对话默认中文命名补丁引擎 (纯 Python 零依赖原生版)
+Antigravity 2.0 简体中文汉化补丁脚本
 功能：
-1. 原生解析与重打包 Electron app.asar (含完整 SHA256 Integrity 校验块重算)，注入前端/菜单/托盘汉化。
-2. 等长替换 language_server.exe 内置的 522 字节会话标题生成 Prompt，强制新对话默认生成简体中文标题。
-3. 支持 --auto-heal 极速自检模式（已汉化状态下耗时 < 5ms；检测到官方版本更新后自动备份并重注）。
-4. 支持 --restore 一键无损还原官方英文原版。
+1. 解析与重打包 Electron app.asar（同步更新 SHA256 Integrity 校验），写入界面、菜单与托盘汉化。
+2. 等长替换 language_server.exe 内置的会话标题生成提示词，使新会话默认生成简体中文标题。
+3. 支持 --auto-heal 检查模式，检测到客户端更新覆盖后自动备份新文件并重新写入补丁。
+4. 支持 --restore 从本地备份恢复官方原版文件。
 """
 
 import argparse
@@ -344,7 +344,7 @@ def patch_asar(asar_path: str, brand_mode: str = "english", quiet: bool = False)
     if not already_patched:
         shutil.copy2(asar_path, backup_asar)
         shutil.copy2(asar_path, local_backup_asar)
-        log_msg(f"[备份] 已保存当前版本纯净 app.asar 备份 -> {backup_asar}", quiet)
+        log_msg(f"[备份] 已备份原版 app.asar -> {backup_asar}", quiet)
     elif os.path.isfile(backup_asar):
         with open(backup_asar, "rb") as bf:
             raw = bf.read()
@@ -434,7 +434,7 @@ def patch_asar(asar_path: str, brand_mode: str = "english", quiet: bool = False)
         except OSError:
             pass
 
-    log_msg("[成功] app.asar 界面汉化注入完成（含 SHA256 Integrity 校验同步）", quiet)
+    log_msg("[完成] 已写入 app.asar 汉化补丁（已更新 SHA256 校验）", quiet)
     return True
 
 
@@ -443,7 +443,7 @@ def patch_language_server(ls_path: str, quiet: bool = False) -> bool:
         data = f.read()
 
     if _NEW_TITLE_PROMPT_BASE in data:
-        log_msg("[跳过] language_server.exe 已包含新对话默认中文命名补丁", quiet)
+        log_msg("[跳过] language_server.exe 已包含中文标题补丁", quiet)
         return True
 
     target_orig = None
@@ -453,13 +453,13 @@ def patch_language_server(ls_path: str, quiet: bool = False) -> bool:
             break
 
     if target_orig is None:
-        log_msg("[警告] 未在 language_server.exe 中找到预期的新对话标题 Prompt，跳过二进制修改", quiet)
+        log_msg("[警告] 未在 language_server.exe 中找到匹配的标题提示词，跳过二进制修改", quiet)
         return False
 
     os.makedirs(BACKUPS_DIR, exist_ok=True)
     backup_ls = os.path.join(BACKUPS_DIR, "language_server.exe.bak")
     shutil.copy2(ls_path, backup_ls)
-    log_msg(f"[备份] 已保存当前版本纯净 language_server.exe 备份 -> {backup_ls}", quiet)
+    log_msg(f"[备份] 已备份原版 language_server.exe -> {backup_ls}", quiet)
 
     replacement_prompt = _NEW_TITLE_PROMPT_BASE.ljust(len(target_orig), b" ")
     patched_data = data.replace(target_orig, replacement_prompt, 1)
@@ -472,7 +472,7 @@ def patch_language_server(ls_path: str, quiet: bool = False) -> bool:
     try:
         os.replace(tmp_ls, ls_path)
     except PermissionError:
-        # Windows NTFS 特性：正在运行的 .exe 不能直接覆盖写入，但允许重命名！
+        # Windows NTFS 允许重命名正在运行的 .exe，再写入新文件
         running_old = ls_path + ".running_old"
         if os.path.exists(running_old):
             try:
@@ -481,9 +481,9 @@ def patch_language_server(ls_path: str, quiet: bool = False) -> bool:
                 running_old = f"{ls_path}.running_old.{int(time.time())}"
         os.replace(ls_path, running_old)
         os.replace(tmp_ls, ls_path)
-        log_msg("[提示] 检测到 language_server.exe 正在运行，已通过 NTFS 无感重命名完成热替换（重启客户端后生效）", quiet)
+        log_msg("[提示] language_server.exe 正在运行，已重命名旧文件并完成替换（重启客户端后生效）", quiet)
 
-    # 顺手清理上次遗留且已释放锁的 .running_old 文件
+    # 清理上次遗留且已释放占用的 .running_old 文件
     for fname in os.listdir(os.path.dirname(ls_path)):
         if ".running_old" in fname:
             try:
@@ -491,7 +491,7 @@ def patch_language_server(ls_path: str, quiet: bool = False) -> bool:
             except OSError:
                 pass
 
-    log_msg("[成功] language_server.exe 新对话默认中文命名补丁注入完成", quiet)
+    log_msg("[完成] 已写入 language_server.exe 中文标题补丁", quiet)
     return True
 
 
@@ -572,7 +572,7 @@ def restore_official(install_dir: str, quiet: bool = False) -> bool:
 
 
 def enable_universal_auto_heal(install_dir: str) -> bool:
-    """为通用 Windows 用户配置『更新不失效』开机/每小时轻量自检计划任务与自愈启动器"""
+    """配置 Windows 计划任务与登录自启项，在客户端更新后自动重打补丁"""
     script_path = os.path.abspath(__file__)
     py_exe = sys.executable
     pyw_exe = os.path.join(os.path.dirname(py_exe), "pythonw.exe")
@@ -590,7 +590,7 @@ def enable_universal_auto_heal(install_dir: str) -> bool:
     )
     if res.returncode == 0:
         task_ok = True
-        log_msg(f"[自愈守护] 已成功注册 Windows 登录自检计划任务: {task_name}")
+        log_msg(f"[自动恢复] 已注册 Windows 登录计划任务: {task_name}")
     else:
         res_hourly = subprocess.run(
             ["schtasks", "/Create", "/F", "/SC", "HOURLY", "/MO", "1", "/TN", task_name, "/TR", tr_cmd],
@@ -599,7 +599,7 @@ def enable_universal_auto_heal(install_dir: str) -> bool:
         )
         if res_hourly.returncode == 0:
             task_ok = True
-            log_msg(f"[自愈守护] 无管理员权限，已自动注册每小时自检计划任务: {task_name}")
+            log_msg(f"[自动恢复] 无管理员权限，已注册每小时检查计划任务: {task_name}")
         else:
             err = res_hourly.stderr.strip() or res.stderr.strip()
             log_msg(f"[提示] 计划任务注册失败: {err}")
@@ -612,7 +612,7 @@ def enable_universal_auto_heal(install_dir: str) -> bool:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, run_key_path, 0, winreg.KEY_SET_VALUE) as key:
             winreg.SetValueEx(key, task_name, 0, winreg.REG_SZ, tr_cmd)
         reg_ok = True
-        log_msg(f"[自愈守护] 已写入当前用户登录自启注册表项 (HKCU\\...\\Run\\{task_name})")
+        log_msg(f"[自动恢复] 已写入当前用户登录自启注册表项 (HKCU\\...\\Run\\{task_name})")
     except Exception as e:
         log_msg(f"[提示] 登录自启注册表项写入失败: {e}")
 
@@ -623,7 +623,7 @@ def disable_universal_auto_heal() -> bool:
     import subprocess
     task_name = "AntigravityZhAutoHeal"
     subprocess.run(["schtasks", "/Delete", "/F", "/TN", task_name], capture_output=True, text=True)
-    log_msg(f"[自愈守护] 已移除 Windows 计划任务: {task_name}")
+    log_msg(f"[自动恢复] 已移除 Windows 计划任务: {task_name}")
     try:
         import winreg
 
@@ -631,7 +631,7 @@ def disable_universal_auto_heal() -> bool:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, run_key_path, 0, winreg.KEY_SET_VALUE) as key:
             try:
                 winreg.DeleteValue(key, task_name)
-                log_msg(f"[自愈守护] 已移除登录自启注册表项: {task_name}")
+                log_msg(f"[自动恢复] 已移除登录自启注册表项: {task_name}")
             except FileNotFoundError:
                 pass
     except Exception as e:
@@ -640,14 +640,14 @@ def disable_universal_auto_heal() -> bool:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Antigravity 2.0 汉化与中文标题补丁工具")
-    parser.add_argument("--install-dir", default="", help="Antigravity 安装目录")
+    parser = argparse.ArgumentParser(description="Antigravity 2.0 简体中文汉化补丁工具")
+    parser.add_argument("--install-dir", default="", help="指定 Antigravity 安装目录")
     parser.add_argument("--brand-title", default="english", choices=["english", "chinese", "hidden"], help="左上角品牌名显示模式")
-    parser.add_argument("--apply", action="store_true", help="强制应用汉化与中文命名补丁")
-    parser.add_argument("--auto-heal", action="store_true", help="启动器极速自检模式（未更新则毫秒级跳过，更新后自动重打补丁）")
-    parser.add_argument("--enable-auto-heal", action="store_true", help="开启通用 Windows 更新自愈守护")
-    parser.add_argument("--disable-auto-heal", action="store_true", help="关闭通用 Windows 更新自愈守护")
-    parser.add_argument("--restore", action="store_true", help="一键还原官方英文原版")
+    parser.add_argument("--apply", action="store_true", help="写入界面汉化与中文标题补丁")
+    parser.add_argument("--auto-heal", action="store_true", help="检查补丁状态，若被客户端更新覆盖则自动重新写入")
+    parser.add_argument("--enable-auto-heal", action="store_true", help="开启更新后自动恢复计划任务")
+    parser.add_argument("--disable-auto-heal", action="store_true", help="关闭更新后自动恢复计划任务")
+    parser.add_argument("--restore", action="store_true", help="从备份恢复官方原版文件")
     parser.add_argument("--status", action="store_true", help="检查当前补丁状态")
     parser.add_argument("--quiet", action="store_true", help="静默运行")
     args = parser.parse_args()
@@ -672,8 +672,8 @@ def main():
         asar_ok = is_asar_patched(asar_path)
         ls_ok = is_ls_patched(ls_path)
         print(f"安装目录: {install_dir}")
-        print(f"界面汉化状态 (app.asar): {'✅ 已生效' if asar_ok else '❌ 未汉化'}")
-        print(f"中文标题命名 (language_server.exe): {'✅ 已生效' if ls_ok else '❌ 未生效'}")
+        print(f"界面汉化 (app.asar): {'已生效' if asar_ok else '未生效'}")
+        print(f"中文标题 (language_server.exe): {'已生效' if ls_ok else '未生效'}")
         sys.exit(0 if (asar_ok and ls_ok) else 1)
 
     if args.restore:
@@ -688,7 +688,7 @@ def main():
         if asar_ok and ls_ok:
             save_patch_state(asar_path, ls_path)
             sys.exit(0)
-        log_msg("[自愈] 检测到 Antigravity 版本更新或补丁缺失，正在自动重新注入...", quiet=args.quiet)
+        log_msg("[自动恢复] 检测到客户端更新或补丁缺失，正在重新写入补丁...", quiet=args.quiet)
         if not asar_ok:
             patch_asar(asar_path, brand_mode=args.brand_title, quiet=args.quiet)
         if not ls_ok:
