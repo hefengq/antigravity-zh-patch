@@ -58,7 +58,7 @@
 
 ```text
 antigravity-zh-patch/
-├── dicts/                      # 分类简体中文词库 (JSON 格式，4,120+ 词条)
+├── dicts/                      # 分类简体中文词库 (JSON 格式，4,390+ 词条)
 │   ├── common.json             # 通用 UI 词条
 │   ├── menu_nav.json           # 导航栏与菜单词条
 │   ├── page_agents.json        # 智能体面板词条
@@ -67,6 +67,7 @@ antigravity-zh-patch/
 │   ├── page_v218_extra.json    # 扩展界面词条
 │   ├── page_v222_patch.json    # 新版增量词条
 │   ├── page_v226_patch.json    # v2.26+ 新版全量增量词条
+│   ├── page_v235_patch.json    # v2.35+ 新版全量增量词条
 │   ├── page_workspaces.json    # 工作区词条
 │   └── zz_custom.json          # 用户自定义/新版增量覆盖词典 (最高优先级)
 ├── src/

@@ -180,6 +180,37 @@
         if (/^Waiting\s+for\s+command\s+completion\s*\(up\s+to\s+(\d+)\s*s(?:ec(?:onds?)?)?\)$/i.test(t)) {
             return t.replace(/^Waiting\s+for\s+command\s+completion\s*\(up\s+to\s+(\d+)\s*s(?:ec(?:onds?)?)?\)$/i, (m, num) => '正在等待命令完成（最多 ' + num + ' 秒）');
         }
+        const monthMap = {
+            jan: '1', january: '1', feb: '2', february: '2', mar: '3', march: '3',
+            apr: '4', april: '4', may: '5', jun: '6', june: '6',
+            jul: '7', july: '7', aug: '8', august: '8', sep: '9', sept: '9', september: '9',
+            oct: '10', october: '10', nov: '11', november: '11', dec: '12', december: '12'
+        };
+        if (/^Leaving\s+on\s+([A-Za-z]+)\s+(\d+)(?:,\s*(\d{4}))?\.?$/i.test(t)) {
+            return t.replace(/^Leaving\s+on\s+([A-Za-z]+)\s+(\d+)(?:,\s*(\d{4}))?(\.)?$/i, (m, mon, day, yr, dot) => {
+                const mNum = monthMap[mon.toLowerCase()];
+                const dateZh = mNum ? ((yr ? yr + ' 年 ' : '') + mNum + ' 月 ' + day + ' 日') : (mon + ' ' + day + (yr ? ', ' + yr : ''));
+                return '将于 ' + dateZh + '下线' + (dot ? '。' : '');
+            });
+        }
+        if (/^(.+?)\s+will\s+be\s+removed\s+from\s+Antigravity\s+on\s+([A-Za-z]+)\s+(\d+),\s*(\d{4})\.?$/i.test(t)) {
+            return t.replace(/^(.+?)\s+will\s+be\s+removed\s+from\s+Antigravity\s+on\s+([A-Za-z]+)\s+(\d+),\s*(\d{4})(\.)?$/i, (m, name, mon, day, yr, dot) => {
+                const mNum = monthMap[mon.toLowerCase()];
+                const dateZh = mNum ? (yr + ' 年 ' + mNum + ' 月 ' + day + ' 日') : (mon + ' ' + day + ', ' + yr);
+                return name + ' 将于 ' + dateZh + '从 Antigravity 移除' + (dot ? '。' : '');
+            });
+        }
+        if (/^Use\s+(.+?)\s+for\s+better\s+quality\s+with\s+lower\s+quota\s+usage\.\s*Leaving\s+on\s+([A-Za-z]+)\s+(\d+)\.?$/i.test(t)) {
+            return t.replace(/^Use\s+(.+?)\s+for\s+better\s+quality\s+with\s+lower\s+quota\s+usage\.\s*Leaving\s+on\s+([A-Za-z]+)\s+(\d+)(\.)?$/i, (m, model, mon, day, dot) => {
+                const mNum = monthMap[mon.toLowerCase()];
+                const dateZh = mNum ? (mNum + ' 月 ' + day + ' 日') : (mon + ' ' + day);
+                return '建议使用 ' + model + '，质量更佳且配额消耗更低。将于 ' + dateZh + '下线' + (dot ? '。' : '');
+            });
+        }
+        if (/^([A-Za-z0-9\.\-\s]+?)\s*\((Minimal|Low|Medium|High|Max)\)$/.test(t)) {
+            const effMap = { minimal: '极低', low: '低', medium: '中等', high: '高', max: '最大' };
+            return t.replace(/^([A-Za-z0-9\.\-\s]+?)\s*\((Minimal|Low|Medium|High|Max)\)$/, (m, prefix, eff) => prefix.trim() + '（' + (effMap[eff.toLowerCase()] || eff) + '）');
+        }
         if (/^Show\s+(\d+)\s+more(\s+(results?|items?|commands?|options?))?(\.\.\.|…)?$/i.test(t)) {
             return t.replace(
                 /^Show\s+(\d+)\s+more(\s+(results?|items?|commands?|options?))?(\.\.\.|…)?$/i,
@@ -332,6 +363,15 @@
                 const shortcutTrans = translateWithShortcut(valNorm);
                 if (shortcutTrans) {
                     newVal = shortcutTrans;
+                } else if (
+                    valNorm === 'New' &&
+                    node.parentElement &&
+                    node.parentElement.tagName === 'SPAN' &&
+                    node.parentElement.className &&
+                    typeof node.parentElement.className === 'string' &&
+                    /\b(rounded-full|rounded|badge|pill)\b/.test(node.parentElement.className)
+                ) {
+                    newVal = '新';
                 } else if (
                     (valNorm === 'Type' || valNorm === 'and select') &&
                     node.parentElement &&
